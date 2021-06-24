@@ -17,6 +17,10 @@ public class robotArmAuto extends LinearOpMode{
         waitForStart();
 
         while(opModeIsActive()) {
+            robot.armMotor.setPower(0.5f);
+            sleep(1000);
+            robot.armMotor.setPower(0);
+            sleep(1000);
 
         }
         robot.armMotor.setPower(0);

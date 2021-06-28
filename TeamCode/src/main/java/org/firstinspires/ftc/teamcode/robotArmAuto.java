@@ -15,29 +15,21 @@ public class robotArmAuto extends LinearOpMode{
         //Initialize with hardwareMap configuration
         robot.init(hardwareMap);
 
-        //resets to 0
-        robot.armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         waitForStart();
 
 
 
         while(opModeIsActive()) {
-            robot.armMotor.setPower(0.2f);
-            telemetry.addData("position", robot.armMotor.getCurrentPosition());
+            robot.armMotor.setPower(0.6f);
+            telemetry.addData("currentPosition", robot.armMotor.getCurrentPosition());
             telemetry.update();
-            robot.armMotor.setTargetPosition(500);
-            robot.armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            //sleep(1000);
+            if(robot.armMotor.getCurrentPosition() >= 500){
+                robot.armMotor.setPower(0);
+                break;
+            }
 
-            WaitTillTargetReached(50);
-            robot.armMotor.setPower(0);
-            sleep(2000);
-            robot.armMotor.setPower(0.2f);
-
-            robot.armMotor.setTargetPosition(0);
-            WaitTillTargetReached(50);
-            robot.armMotor.setPower(0);
-            sleep(2000);
 
 
 

@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.projects;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class ProjectArm extends Project {
@@ -16,12 +17,13 @@ public class ProjectArm extends Project {
 
 
         //Setup Motor directions and Encoder settings
-        armMotor .setDirection(DcMotor.Direction.REVERSE);
+        armMotor.setDirection(DcMotor.Direction.FORWARD);
+
         //rightMotor .setDirection(DcMotor.Direction.FORWARD);
 
-        armMotor .setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        armMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        armMotor .setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        armMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Set all motors to zero power
         Stop();

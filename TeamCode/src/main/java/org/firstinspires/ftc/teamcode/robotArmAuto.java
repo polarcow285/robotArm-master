@@ -14,6 +14,8 @@ public class robotArmAuto extends LinearOpMode{
     public void runOpMode() throws InterruptedException {
         //Initialize with hardwareMap configuration
         robot.init(hardwareMap);
+
+        //resets to 0
         robot.armMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         waitForStart();
@@ -26,7 +28,17 @@ public class robotArmAuto extends LinearOpMode{
             telemetry.update();
             robot.armMotor.setTargetPosition(500);
             robot.armMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
             WaitTillTargetReached(50);
+            robot.armMotor.setPower(0);
+            sleep(2000);
+            robot.armMotor.setPower(0.2f);
+
+            robot.armMotor.setTargetPosition(0);
+            WaitTillTargetReached(50);
+            robot.armMotor.setPower(0);
+            sleep(2000);
+
 
 
         }
@@ -44,6 +56,7 @@ public class robotArmAuto extends LinearOpMode{
 
             sleep(1);
         }
-        robot.armMotor.setPower(0);
+        telemetry.addData("DONE", "done");
+        telemetry.update();
     }
 }

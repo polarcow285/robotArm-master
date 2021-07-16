@@ -22,7 +22,13 @@ public class robotArmAuto extends LinearOpMode{
 
 
         while(opModeIsActive()) {
-            for(int x = 0; x < 20; x++){
+            goToEncoderPositionABS(1120, 35);
+            sleep(2000);
+            goToEncoderPositionABS(2240, 80);
+            sleep(2000);
+            goToEncoderPositionABS(1000, 35);
+            sleep(2000);
+            /*for(int x = 0; x < 20; x++){
                 goToEncoderPositionINC(56, 10);
                 sleep(100);
             }
@@ -32,6 +38,7 @@ public class robotArmAuto extends LinearOpMode{
             while(robot.armMotor.getCurrentPosition() < (ENCODERCOUNTSPERREVOLUTION*3)){
                 calculateSpeed();
             }
+
             setSpeed(70, 5000);
             while(robot.armMotor.getCurrentPosition() < (ENCODERCOUNTSPERREVOLUTION*6)){
                 calculateSpeed();
@@ -42,8 +49,8 @@ public class robotArmAuto extends LinearOpMode{
             }
             break;
 
-             */
-            /* calculating average speed
+
+            //calculating average speed
             long startTime = System.currentTimeMillis();
             robot.armMotor.setPower(0.2f);
             while(robot.armMotor.getCurrentPosition() < 1120){
@@ -113,9 +120,21 @@ public class robotArmAuto extends LinearOpMode{
 
         //sleep(delayMS);
     }
-    private void goToEncoderPositionABS(){
-
-        //sleep(delayMS);
+    private void goToEncoderPositionABS(int targetEncoderPosition, float rpm){
+        float initialPosition = robot.armMotor.getCurrentPosition();
+        if(targetEncoderPosition > initialPosition){
+            setSpeed(rpm, 0);
+            while(robot.armMotor.getCurrentPosition() <  targetEncoderPosition){
+                //calculateSpeed();
+            }
+        }
+        else{
+            setSpeed(-rpm, 0);
+            while(robot.armMotor.getCurrentPosition() >  targetEncoderPosition){
+                //calculateSpeed();
+            }
+        }
+        stopMotor();
     }
     private void WaitTillTargetReached(int tolerance){
         int difference = Math.abs(robot.armMotor.getTargetPosition() - robot.armMotor.getCurrentPosition());

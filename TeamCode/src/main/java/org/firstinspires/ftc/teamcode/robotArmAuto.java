@@ -22,12 +22,10 @@ public class robotArmAuto extends LinearOpMode{
 
 
         while(opModeIsActive()) {
-            goToEncoderPositionABS(1120, 35);
+            goToEncoderPositionPID(2240, 175, 0);
+
             sleep(2000);
-            goToEncoderPositionABS(2240, 80);
-            sleep(2000);
-            goToEncoderPositionABS(1000, 35);
-            sleep(2000);
+
             /*for(int x = 0; x < 20; x++){
                 goToEncoderPositionINC(56, 10);
                 sleep(100);
@@ -101,6 +99,24 @@ public class robotArmAuto extends LinearOpMode{
         robot.armMotor.setPower(power);
         //sleep(delayMS);
     }
+    private boolean errorCheck(int targetPosition, int tolerance){
+        //correction speed rpm of 10 or greater causes motor to overshoot
+        boolean noError;
+        if(Math.abs(robot.armMotor.getCurrentPosition() - targetPosition) <= tolerance){
+            noError = true;
+        }
+        else{
+            noError = false;
+            telemetry.addData("correcting", "kjasdnf");
+            telemetry.update();
+            sleep(1000);
+            goToEncoderPositionABS(targetPosition, 5);
+        }
+        telemetry.addData("current position", robot.armMotor.getCurrentPosition());
+        telemetry.update();
+        return noError;
+        //sleep(delayMS);
+    }
     private void goToEncoderPositionINC(int targetEncoderIncrement, float rpm){
         float initialPosition = robot.armMotor.getCurrentPosition();
         if(targetEncoderIncrement > 0){
@@ -120,17 +136,48 @@ public class robotArmAuto extends LinearOpMode{
 
         //sleep(delayMS);
     }
-    private void goToEncoderPositionABS(int targetEncoderPosition, float rpm){
-        float initialPosition = robot.armMotor.getCurrentPosition();
-        if(targetEncoderPosition > initialPosition){
+    //does all corrections, does not return until all corrections are completed
+    private void goToEncoderPositionPID(int targetEncoderPosition, float rpm, int tolerance){
+        int delta = Math.abs(robot.armMotor.getCurrentPosition() - targetEncoderPosition);
+        telemetry.addData("delta", delta);
+        telemetry.update();
+
+        if (delta <= tolerance) {
+            stopMotor();
+        }
+        else{
+            goToEncoderPositionABS(targetEncoderPosition, rpm);
+            while(errorCheck(targetEncoderPosition, tolerance) == false) {
+
+            }
+        }
+
+        /*
+        else if (targetEncoderPosition > initialPosition){
             setSpeed(rpm, 0);
             while(robot.armMotor.getCurrentPosition() <  targetEncoderPosition){
                 //calculateSpeed();
             }
         }
-        else{
+        else {
             setSpeed(-rpm, 0);
-            while(robot.armMotor.getCurrentPosition() >  targetEncoderPosition){
+            while (robot.armMotor.getCurrentPosition() > targetEncoderPosition) {
+                //calculateSpeed();
+            }
+        }*/
+    }
+    //no correction
+    private void goToEncoderPositionABS(int targetEncoderPosition, float rpm){
+        float initialPosition = robot.armMotor.getCurrentPosition();
+        if (targetEncoderPosition > initialPosition){
+            setSpeed(rpm, 0);
+            while(robot.armMotor.getCurrentPosition() <  targetEncoderPosition){
+                //calculateSpeed();
+            }
+        }
+        else {
+            setSpeed(-rpm, 0);
+            while (robot.armMotor.getCurrentPosition() > targetEncoderPosition) {
                 //calculateSpeed();
             }
         }

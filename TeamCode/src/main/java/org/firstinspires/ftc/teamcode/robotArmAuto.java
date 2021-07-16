@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 public class robotArmAuto extends LinearOpMode{
     public ProjectArm robot = new ProjectArm();
     public static final float ENCODERCOUNTSPERREVOLUTION = 1120f;
+
     @Override
     public void runOpMode() throws InterruptedException {
         //Initialize with hardwareMap configuration
@@ -21,13 +22,27 @@ public class robotArmAuto extends LinearOpMode{
 
 
         while(opModeIsActive()) {
-            robot.armMotor.setPower(0.2f);
-            while(robot.armMotor.getCurrentPosition() < 10000){
+            for(int x = 0; x < 20; x++){
+                goToEncoderPositionINC(56, 10);
+                sleep(100);
+            }
+            goToEncoderPositionINC(-1120, 10);
+            sleep(3000);
+            /*setSpeed(35, 5000);
+            while(robot.armMotor.getCurrentPosition() < (ENCODERCOUNTSPERREVOLUTION*3)){
                 calculateSpeed();
-                //telemetry.addData("currentPosition", robot.armMotor.getCurrentPosition());
-                //telemetry.update();
+            }
+            setSpeed(70, 5000);
+            while(robot.armMotor.getCurrentPosition() < (ENCODERCOUNTSPERREVOLUTION*6)){
+                calculateSpeed();
+            }
+            setSpeed(140, 5000);
+            while(robot.armMotor.getCurrentPosition() < (ENCODERCOUNTSPERREVOLUTION*9)){
+                calculateSpeed();
             }
             break;
+
+             */
             /* calculating average speed
             long startTime = System.currentTimeMillis();
             robot.armMotor.setPower(0.2f);
@@ -59,6 +74,10 @@ public class robotArmAuto extends LinearOpMode{
         }
         robot.armMotor.setPower(0);
     }
+    private void stopMotor(){
+        robot.armMotor.setPower(0);
+        //sleep(delayMS);
+    }
     private void calculateSpeed(){
         float initialPosition = robot.armMotor.getCurrentPosition();
         sleep(25);
@@ -69,6 +88,34 @@ public class robotArmAuto extends LinearOpMode{
         float rpm = eps * (60f/ENCODERCOUNTSPERREVOLUTION);
         telemetry.addData("rpm", rpm);
         telemetry.update();
+    }
+    private void setSpeed(float rpm, int delayMS){
+        float power = rpm/175f;
+        robot.armMotor.setPower(power);
+        //sleep(delayMS);
+    }
+    private void goToEncoderPositionINC(int targetEncoderIncrement, float rpm){
+        float initialPosition = robot.armMotor.getCurrentPosition();
+        if(targetEncoderIncrement > 0){
+            setSpeed(rpm, 0);
+            while(robot.armMotor.getCurrentPosition() <  initialPosition + targetEncoderIncrement){
+                //calculateSpeed();
+            }
+        }
+        else{
+            setSpeed(-rpm, 0);
+            while(robot.armMotor.getCurrentPosition() >  initialPosition + targetEncoderIncrement){
+                //calculateSpeed();
+            }
+        }
+        stopMotor();
+
+
+        //sleep(delayMS);
+    }
+    private void goToEncoderPositionABS(){
+
+        //sleep(delayMS);
     }
     private void WaitTillTargetReached(int tolerance){
         int difference = Math.abs(robot.armMotor.getTargetPosition() - robot.armMotor.getCurrentPosition());

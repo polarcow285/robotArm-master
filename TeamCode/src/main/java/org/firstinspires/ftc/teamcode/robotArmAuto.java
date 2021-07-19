@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 public class robotArmAuto extends LinearOpMode{
     public ProjectArm robot = new ProjectArm();
     public static final float ENCODERCOUNTSPERREVOLUTION = 1120f;
+    int numberOfCorrections = 0;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -22,10 +23,11 @@ public class robotArmAuto extends LinearOpMode{
 
 
         while(opModeIsActive()) {
-            goToEncoderPositionPID(2240, 175, 0);
-
+            //goToEncoderPositionPID(2240, 175, 0);
+            goToEncoderPositionINC(2240, 35);
             sleep(2000);
-
+            goToEncoderPositionINC(-2240, 35);
+            sleep(2000);
             /*for(int x = 0; x < 20; x++){
                 goToEncoderPositionINC(56, 10);
                 sleep(100);
@@ -99,10 +101,12 @@ public class robotArmAuto extends LinearOpMode{
         robot.armMotor.setPower(power);
         //sleep(delayMS);
     }
-    private boolean errorCheck(int targetPosition, int tolerance){
+    private boolean errorCheck(int targetPosition, int tolerance, int delta){
         //correction speed rpm of 10 or greater causes motor to overshoot
         boolean noError;
-        if(Math.abs(robot.armMotor.getCurrentPosition() - targetPosition) <= tolerance){
+        telemetry.addData("current position", robot.armMotor.getCurrentPosition());
+        telemetry.update();
+        if(Math.abs(delta) <= tolerance){
             noError = true;
         }
         else{
@@ -110,15 +114,14 @@ public class robotArmAuto extends LinearOpMode{
             telemetry.addData("correcting", "kjasdnf");
             telemetry.update();
             sleep(1000);
-            goToEncoderPositionABS(targetPosition, 5);
+            goToEncoderPositionINC(delta, 5);
         }
-        telemetry.addData("current position", robot.armMotor.getCurrentPosition());
-        telemetry.update();
+
         return noError;
         //sleep(delayMS);
     }
     private void goToEncoderPositionINC(int targetEncoderIncrement, float rpm){
-        float initialPosition = robot.armMotor.getCurrentPosition();
+        int initialPosition = robot.armMotor.getCurrentPosition();
         if(targetEncoderIncrement > 0){
             setSpeed(rpm, 0);
             while(robot.armMotor.getCurrentPosition() <  initialPosition + targetEncoderIncrement){
@@ -128,6 +131,8 @@ public class robotArmAuto extends LinearOpMode{
         else{
             setSpeed(-rpm, 0);
             while(robot.armMotor.getCurrentPosition() >  initialPosition + targetEncoderIncrement){
+                telemetry.addData("increment current position", robot.armMotor.getCurrentPosition());
+                telemetry.update();
                 //calculateSpeed();
             }
         }
@@ -138,18 +143,35 @@ public class robotArmAuto extends LinearOpMode{
     }
     //does all corrections, does not return until all corrections are completed
     private void goToEncoderPositionPID(int targetEncoderPosition, float rpm, int tolerance){
-        int delta = Math.abs(robot.armMotor.getCurrentPosition() - targetEncoderPosition);
-        telemetry.addData("delta", delta);
-        telemetry.update();
-
-        if (delta <= tolerance) {
+        numberOfCorrections = 0;
+        int delta = robot.armMotor.getCurrentPosition() - targetEncoderPosition;
+        if (Math.abs(delta) <= tolerance) {
             stopMotor();
         }
         else{
+            //try to go to the target position (1st try)
             goToEncoderPositionABS(targetEncoderPosition, rpm);
-            while(errorCheck(targetEncoderPosition, tolerance) == false) {
+            //update delta
+            int currentPosition = robot.armMotor.getCurrentPosition();
+            delta = currentPosition - targetEncoderPosition;
+            while(Math.abs(delta)>tolerance){
+                numberOfCorrections++;
+                telemetry.addData("correcting", numberOfCorrections);
+                telemetry.addData("delta", delta);
+                telemetry.addData("current position", currentPosition);
+                telemetry.update();
+                sleep(2000);
+                //goToEncoderPositionABS(targetEncoderPosition, 5);
+                goToEncoderPositionINC(-delta, 5);
+                //goToEncoderPositionINC(-delta, 5);
+                currentPosition = robot.armMotor.getCurrentPosition();
+                delta = currentPosition - targetEncoderPosition;
 
             }
+            //after first attempt, corrects continuously as needed
+           /* while(errorCheck(targetEncoderPosition, tolerance, delta) == false) {
+                delta = robot.armMotor.getCurrentPosition() - targetEncoderPosition;
+            }*/
         }
 
         /*

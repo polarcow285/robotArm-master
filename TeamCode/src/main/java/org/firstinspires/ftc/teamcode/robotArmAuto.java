@@ -11,6 +11,7 @@ public class robotArmAuto extends LinearOpMode{
     public ProjectArm robot = new ProjectArm();
     public static final float ENCODERCOUNTSPERREVOLUTION = 1120f;
     int numberOfCorrections = 0;
+    public static final int STOPINTERVALMS = 2000;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -23,11 +24,13 @@ public class robotArmAuto extends LinearOpMode{
 
 
         while(opModeIsActive()) {
+            telemetry.setAutoClear(false);
             //goToEncoderPositionPID(2240, 175, 0);
-            goToEncoderPositionINC(2240, 35);
-            sleep(2000);
-            goToEncoderPositionINC(-2240, 35);
-            sleep(2000);
+            goToEncoderPositionPID(2240, 175, 0);
+            telemetry.addData("done", "done");
+            telemetry.update();
+            //System.out.println(telemetry.log());
+            sleep(20000);
             /*for(int x = 0; x < 20; x++){
                 goToEncoderPositionINC(56, 10);
                 sleep(100);
@@ -83,7 +86,8 @@ public class robotArmAuto extends LinearOpMode{
     }
     private void stopMotor(){
         robot.armMotor.setPower(0);
-        //sleep(delayMS);
+        //routine that waits for motor to physically stop after power has been shut down
+        waitForStop();
     }
     private void calculateSpeed(){
         float initialPosition = robot.armMotor.getCurrentPosition();
@@ -120,20 +124,31 @@ public class robotArmAuto extends LinearOpMode{
         return noError;
         //sleep(delayMS);
     }
+    private boolean isStopped(){
+        int initialPosition = robot.armMotor.getCurrentPosition();
+        sleep(STOPINTERVALMS);
+        int finalPosition = robot.armMotor.getCurrentPosition();
+        telemetry.addData("isStopped", initialPosition == finalPosition);
+        telemetry.update();
+        return initialPosition == finalPosition;
+    }
     private void goToEncoderPositionINC(int targetEncoderIncrement, float rpm){
         int initialPosition = robot.armMotor.getCurrentPosition();
         if(targetEncoderIncrement > 0){
             setSpeed(rpm, 0);
+            //robot.armMotor.setPower(0.2);
             while(robot.armMotor.getCurrentPosition() <  initialPosition + targetEncoderIncrement){
                 //calculateSpeed();
+                telemetry.addData("heyyyyyyyy", robot.armMotor.getCurrentPosition());
+                telemetry.update();
             }
         }
         else{
             setSpeed(-rpm, 0);
             while(robot.armMotor.getCurrentPosition() >  initialPosition + targetEncoderIncrement){
-                telemetry.addData("increment current position", robot.armMotor.getCurrentPosition());
-                telemetry.update();
                 //calculateSpeed();
+                //telemetry.addData("im stuck", "stuck");
+                //telemetry.update();
             }
         }
         stopMotor();
@@ -151,6 +166,7 @@ public class robotArmAuto extends LinearOpMode{
         else{
             //try to go to the target position (1st try)
             goToEncoderPositionABS(targetEncoderPosition, rpm);
+            //sleep(200);
             //update delta
             int currentPosition = robot.armMotor.getCurrentPosition();
             delta = currentPosition - targetEncoderPosition;
@@ -160,9 +176,10 @@ public class robotArmAuto extends LinearOpMode{
                 telemetry.addData("delta", delta);
                 telemetry.addData("current position", currentPosition);
                 telemetry.update();
-                sleep(2000);
+
                 //goToEncoderPositionABS(targetEncoderPosition, 5);
-                goToEncoderPositionINC(-delta, 5);
+                goToEncoderPositionINC(-delta, 10);
+                sleep(250);
                 //goToEncoderPositionINC(-delta, 5);
                 currentPosition = robot.armMotor.getCurrentPosition();
                 delta = currentPosition - targetEncoderPosition;
@@ -203,7 +220,13 @@ public class robotArmAuto extends LinearOpMode{
                 //calculateSpeed();
             }
         }
+
         stopMotor();
+    }
+    private void waitForStop(){
+        while(isStopped() == false){
+
+        }
     }
     private void WaitTillTargetReached(int tolerance){
         int difference = Math.abs(robot.armMotor.getTargetPosition() - robot.armMotor.getCurrentPosition());

@@ -27,12 +27,15 @@ public class vuforiaTest extends LinearOpMode{
         parameters.cameraName = robot.camera;
 
         VuforiaLocalizer vuforia = ClassFactory.getInstance().createVuforia(parameters);
-        VuforiaTrackables trackables = vuforia.loadTrackablesFromAsset("FTC_2016-17");
+        VuforiaTrackables trackables = vuforia.loadTrackablesFromAsset("VuforiaTest");
 
+        //gets first trackable (image)
         VuforiaTrackable trackable = trackables.get(0);
         trackable.setName("target");
 
         trackables.activate();
+
+        //create listener based on trackable
         VuforiaTrackableDefaultListener listener;
         listener = (VuforiaTrackableDefaultListener) trackable.getListener();
         //OpenGLMatrix lastKnownLocation = null;
@@ -45,9 +48,14 @@ public class vuforiaTest extends LinearOpMode{
         waitForStart();
 
         while(opModeIsActive()){
-            latestLocation = listener.getCameraLocationOnRobot(robot.camera);
+            while(latestLocation == null){
+                latestLocation = listener.getUpdatedRobotLocation();
+            }
+
+            //latestLocation = listener.getCameraLocationOnRobot(robot.camera);
             telemetry.addData("cameraname",formatMatrix(latestLocation));
             telemetry.update();
+            latestLocation = null;
 
 
         }

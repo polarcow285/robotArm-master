@@ -11,7 +11,7 @@ public class robotArmAuto extends LinearOpMode{
     public ProjectArm robot = new ProjectArm();
     public static final float ENCODERCOUNTSPERREVOLUTION = 1120f;
     int numberOfCorrections = 0;
-    public static final int STOPINTERVALMS = 2000;
+    public static final int STOPINTERVALMS = 50;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -29,8 +29,10 @@ public class robotArmAuto extends LinearOpMode{
             goToEncoderPositionPID(2240, 175, 0);
             telemetry.addData("done", "done");
             telemetry.update();
-            //System.out.println(telemetry.log());
-            sleep(20000);
+
+            goToEncoderPositionPID(0, 175, 0);
+            telemetry.addData("done2", "done2");
+            telemetry.update();
             /*for(int x = 0; x < 20; x++){
                 goToEncoderPositionINC(56, 10);
                 sleep(100);
@@ -179,7 +181,7 @@ public class robotArmAuto extends LinearOpMode{
 
                 //goToEncoderPositionABS(targetEncoderPosition, 5);
                 goToEncoderPositionINC(-delta, 10);
-                sleep(250);
+                //sleep(250);
                 //goToEncoderPositionINC(-delta, 5);
                 currentPosition = robot.armMotor.getCurrentPosition();
                 delta = currentPosition - targetEncoderPosition;

@@ -1,11 +1,13 @@
 package org.firstinspires.ftc.teamcode.projects;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.Camera;
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 public class ProjectArm extends Project {
     //setting up motors
     public DcMotor armMotor = null;
+    public WebcamName camera = null;
 
     @Override
     public void init(HardwareMap ahwMap) {

@@ -30,15 +30,22 @@ public class vuforiaTest extends LinearOpMode{
         VuforiaTrackables trackables = vuforia.loadTrackablesFromAsset("VuforiaTest");
 
         //gets first trackable (image)
-        VuforiaTrackable trackable = trackables.get(0);
-        trackable.setName("target");
+        VuforiaTrackable redpandaTrackable = trackables.get(0);
+        VuforiaTrackable giraffeTrackable = trackables.get(1);
+        redpandaTrackable.setName("redpanda");
+        giraffeTrackable.setName("giraffe");
 
         trackables.activate();
 
         //create listener based on trackable
-        VuforiaTrackableDefaultListener listener;
-        listener = (VuforiaTrackableDefaultListener) trackable.getListener();
-        //OpenGLMatrix lastKnownLocation = null;
+        VuforiaTrackableDefaultListener giraffeListener;
+        giraffeListener = (VuforiaTrackableDefaultListener) giraffeTrackable.getListener();
+
+        VuforiaTrackableDefaultListener redpandaListener;
+        redpandaListener = (VuforiaTrackableDefaultListener) redpandaTrackable.getListener();
+
+        OpenGLMatrix redpandaLocation = null;
+        OpenGLMatrix giraffeLocation = null;
         OpenGLMatrix latestLocation = null;
 
 
@@ -46,23 +53,62 @@ public class vuforiaTest extends LinearOpMode{
 
 
         waitForStart();
+        float z;
 
         while(opModeIsActive()){
-            while(latestLocation == null){
-                latestLocation = listener.getUpdatedRobotLocation();
+            giraffeLocation = giraffeListener.getUpdatedRobotLocation();
+            redpandaLocation = redpandaListener.getUpdatedRobotLocation();
+            if(redpandaLocation !=null){
+                z = redpandaLocation.getTranslation().get(2);
+                if(z>250){
+                    //far
+                    telemetry.clear();
+                    telemetry.addData("redpanda", "far!");
+                }
+                else{
+                    telemetry.clear();
+                    telemetry.addData("redpanda", "close!");
+
+                }
             }
+            else if(giraffeLocation !=null){
+                //giraffeLocation = giraffeListener.getUpdatedRobotLocation();
+                telemetry.clear();
+                telemetry.addData("giraffe", formatMatrix(giraffeLocation));
+            }
+            /*else{
+                telemetry.clear();
+                telemetry.addData("no animal found", ":(");
+                //telemetry.update();
+            }*/
+            telemetry.update();
+                /*for(int x = 0; x < 2; x++){
+                    latestLocation = ((VuforiaTrackableDefaultListener) trackables.get(x).getListener()).getUpdatedRobotLocation();
+                }*/
+
+
+
+
+
+
 
             //latestLocation = listener.getCameraLocationOnRobot(robot.camera);
-            telemetry.addData("cameraname",formatMatrix(latestLocation));
-            telemetry.update();
-            latestLocation = null;
+
+
 
 
         }
+        stop();
 
     }
     private String formatMatrix(OpenGLMatrix matrix)
     {
-        return matrix.formatAsTransform();
+        if(matrix != null){
+            return matrix.formatAsTransform();
+        }
+        else{
+            return "not found";
+        }
+
     }
 }

@@ -13,10 +13,28 @@ public class robotArmAuto extends LinearOpMode{
     int numberOfCorrections = 0;
     public static final int STOPINTERVALMS = 50;
 
+    boolean isFirstTime = true;
+
+    long currentTime;
+    long previousTime;
+    long elapsedTime;
+    float targetPosition;
+    float error;
+    float cumulativeError;
+    float rateError;
+    float lastError;
+    float correction;
+
+    //PID constants
+    float kp = 1;
+    float ki = 1;
+    float kd = 1;
+
     @Override
     public void runOpMode() throws InterruptedException {
         //Initialize with hardwareMap configuration
         robot.init(hardwareMap);
+
 
 
         waitForStart();
@@ -25,14 +43,25 @@ public class robotArmAuto extends LinearOpMode{
 
         while(opModeIsActive()) {
             telemetry.setAutoClear(false);
+            targetPosition = 2240;
+            if (isFirstTime){
+                previousTime = System.currentTimeMillis();
+                lastError = 0;
+                isFirstTime = false;
+            }
+            goToEncoderPositionINC(computePID(robot.armMotor.getCurrentPosition()), 80);
+            sleep(100);
+
+
             //goToEncoderPositionPID(2240, 175, 0);
-            goToEncoderPositionPID(2240, 175, 0);
-            telemetry.addData("done", "done");
+            /*goToEncoderPositionPID(2240, 175, 0);
+            long elapsedTime = System.currentTimeMillis() - begTime;
+            telemetry.addData("elapsedTime", elapsedTime);
             telemetry.update();
 
             goToEncoderPositionPID(0, 175, 0);
             telemetry.addData("done2", "done2");
-            telemetry.update();
+            telemetry.update();*/
             /*for(int x = 0; x < 20; x++){
                 goToEncoderPositionINC(56, 10);
                 sleep(100);
@@ -86,6 +115,24 @@ public class robotArmAuto extends LinearOpMode{
         }
         robot.armMotor.setPower(0);
     }
+    private float computePID(float currentPosition){
+        currentTime = System.currentTimeMillis();
+        elapsedTime = currentTime - previousTime;
+
+        error = targetPosition - currentPosition;
+        cumulativeError += error * elapsedTime; //integral - step function approximation
+        rateError = (error - lastError)/elapsedTime; //derivative
+
+        correction = (kp * error) + (ki * cumulativeError) + (kd * rateError);
+
+        lastError = error;
+        previousTime = currentTime;
+
+        telemetry.addData("correction", correction);
+        telemetry.update();
+        return correction;
+
+    }
     private void stopMotor(){
         robot.armMotor.setPower(0);
         //routine that waits for motor to physically stop after power has been shut down
@@ -134,15 +181,15 @@ public class robotArmAuto extends LinearOpMode{
         telemetry.update();
         return initialPosition == finalPosition;
     }
-    private void goToEncoderPositionINC(int targetEncoderIncrement, float rpm){
-        int initialPosition = robot.armMotor.getCurrentPosition();
+    private void goToEncoderPositionINC(float targetEncoderIncrement, float rpm){
+        float initialPosition = robot.armMotor.getCurrentPosition();
         if(targetEncoderIncrement > 0){
             setSpeed(rpm, 0);
             //robot.armMotor.setPower(0.2);
             while(robot.armMotor.getCurrentPosition() <  initialPosition + targetEncoderIncrement){
                 //calculateSpeed();
-                telemetry.addData("heyyyyyyyy", robot.armMotor.getCurrentPosition());
-                telemetry.update();
+                //telemetry.addData("heyyyyyyyy", robot.armMotor.getCurrentPosition());
+                //telemetry.update();
             }
         }
         else{
@@ -153,7 +200,7 @@ public class robotArmAuto extends LinearOpMode{
                 //telemetry.update();
             }
         }
-        stopMotor();
+        //stopMotor();
 
 
         //sleep(delayMS);

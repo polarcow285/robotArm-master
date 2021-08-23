@@ -44,6 +44,16 @@ public class robotArmAuto extends LinearOpMode{
         while(opModeIsActive()) {
             telemetry.setAutoClear(false);
             targetPosition = 2240;
+            while(true){
+                float finalError = computePID();
+                if(finalError == 0){
+                    break;
+                }
+                goToEncoderPositionINC(finalError, 40);
+            }
+            robot.armMotor.setPower(0);
+            break;
+            /*targetPosition = 2240;
             if (isFirstTime){
                 previousTime = System.currentTimeMillis();
                 lastError = 0;
@@ -51,7 +61,7 @@ public class robotArmAuto extends LinearOpMode{
             }
             goToEncoderPositionINC(computePID(robot.armMotor.getCurrentPosition()), 80);
             sleep(100);
-
+             */
 
             //goToEncoderPositionPID(2240, 175, 0);
             /*goToEncoderPositionPID(2240, 175, 0);
@@ -115,15 +125,15 @@ public class robotArmAuto extends LinearOpMode{
         }
         robot.armMotor.setPower(0);
     }
-    private float computePID(float currentPosition){
+    private float computePID(){
         currentTime = System.currentTimeMillis();
         elapsedTime = currentTime - previousTime;
 
-        error = targetPosition - currentPosition;
+        error = targetPosition - robot.armMotor.getCurrentPosition();
         cumulativeError += error * elapsedTime; //integral - step function approximation
         rateError = (error - lastError)/elapsedTime; //derivative
 
-        correction = (kp * error) + (ki * cumulativeError) + (kd * rateError);
+        correction = (kp * error);
 
         lastError = error;
         previousTime = currentTime;
@@ -187,6 +197,8 @@ public class robotArmAuto extends LinearOpMode{
             setSpeed(rpm, 0);
             //robot.armMotor.setPower(0.2);
             while(robot.armMotor.getCurrentPosition() <  initialPosition + targetEncoderIncrement){
+                sleep(1);
+                break;
                 //calculateSpeed();
                 //telemetry.addData("heyyyyyyyy", robot.armMotor.getCurrentPosition());
                 //telemetry.update();
@@ -195,6 +207,8 @@ public class robotArmAuto extends LinearOpMode{
         else{
             setSpeed(-rpm, 0);
             while(robot.armMotor.getCurrentPosition() >  initialPosition + targetEncoderIncrement){
+                sleep(1);
+                break;
                 //calculateSpeed();
                 //telemetry.addData("im stuck", "stuck");
                 //telemetry.update();

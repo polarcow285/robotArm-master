@@ -42,14 +42,22 @@ public class robotArmAuto extends LinearOpMode{
 
 
         while(opModeIsActive()) {
-            telemetry.setAutoClear(false);
+            //telemetry.setAutoClear(false);
             targetPosition = 2240;
+            if (isFirstTime){
+                previousTime = System.currentTimeMillis();
+                sleep(1);
+                lastError = 0;
+                isFirstTime = false;
+            }
             while(true){
                 float finalError = computePID();
                 if(finalError == 0){
                     break;
                 }
                 goToEncoderPositionINC(finalError, 40);
+                //telemetry.addData("current position",robot.armMotor.getCurrentPosition());
+                //telemetry.update();
             }
             robot.armMotor.setPower(0);
             break;
@@ -133,7 +141,11 @@ public class robotArmAuto extends LinearOpMode{
         cumulativeError += error * elapsedTime; //integral - step function approximation
         rateError = (error - lastError)/elapsedTime; //derivative
 
-        correction = (kp * error);
+        if(error == 0){
+            ki = 0;
+        }
+        correction = (kp * error) + (ki * cumulativeError) + (kd * rateError);
+
 
         lastError = error;
         previousTime = currentTime;
